@@ -24,15 +24,29 @@
 (def version (deduce-version-from-git))
 
 (set-env! :resource-paths #{"src"}
-          :source-paths   #{"test"}
+          :source-paths   #{"src" "test"}
           :dependencies   '[[org.clojure/clojure "1.9.0" :scope "provided"]
 
                             [adzerk/boot-test "RELEASE" :scope "test"]
-                            [org.clojure/test.check "0.10.0-alpha2" :scope "test"]
                             [adzerk/bootlaces "0.1.13" :scope "test"]
+                            [org.clojure/test.check "0.10.0-alpha2" :scope "test"]
+                            [spec-provider "0.4.11" :scope "test"]
+                            [orchestra "2017.11.12-1" :scope "test"]
 
-                            [clj-mecab "0.4.16"]
-                            [corpus-utils "0.2.9"]])
+                            [org.clojure/tools.cli "0.3.5"]
+                            [me.raynes/fs "1.4.6"]
+                            [clj-mecab "0.4.18-g98fc213-dirty"]
+                            [corpus-utils "0.2.10-gfb277dc-dirty"]
+
+                            [clj-time "0.14.2"]
+                            [hiccup "2.0.0-alpha1"]
+                            [garden "1.3.3"]
+
+                            [kixi/stats "0.4.0"]
+                            [redux "0.1.4"]
+                            [org.clojure/math.combinatorics "0.1.4"]
+                            [plumula/diff "0.1.1"]
+                            [diffit "1.0.0"]])
 
 (task-options!
  pom {:project     (symbol project)
@@ -44,11 +58,13 @@
                     "http://www.eclipse.org/legal/epl-v10.html"
                     "BSD"
                     "BSD"}}
- aot {:namespace #{'ja-morph-diff.main}}
+ aot {:all true}
  jar {:main 'ja-morph-diff.main :file (str project "-" version ".jar")}
+ ;;sift {:include #{#"ja-morph-diff"}}
  target {:dir #{"target"}})
 
 (require '[adzerk.bootlaces :refer :all])
+(require '[ja-morph-diff.main])
 
 (bootlaces! version)
 
@@ -60,5 +76,17 @@
 (deftask dev
   []
   (comp (watch) (build) (repl :init-ns 'ja-morph-diff.main :server true)))
+
+(deftask uberjar []
+  (comp
+   (aot)
+   (pom)
+   (uber)
+   (jar)
+   (target)))
+
+(deftask run
+  []
+  (ja-morph-diff.main/-main ""))
 
 (require '[adzerk.boot-test :refer [test]])
